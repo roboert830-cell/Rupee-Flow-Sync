@@ -1,23 +1,6 @@
-// Function to log in with Google
-function loginWithGoogle() {
-  const provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(provider)
-    .then((result) => {
-      console.log("Successfully logged in as:", result.user.displayName);
-      // Load or sync user data after successful login
-      loadUserData();
-    })
-    .catch((error) => {
-      console.error("Google Login Error:", error.message);
-    });
-}
-
-// Optional: Log out function
-function logoutUser() {
-  firebase.auth().signOut().then(() => {
-    console.log("Logged out successfully");
-  });
-}
+// ==========================================
+// 1. INITIALIZE FIREBASE FIRST
+// ==========================================
 const firebaseConfig = {
   apiKey: "AIzaSyCZH5LRgfHfb4PemAa-0yOYr3j3H2C3k",
   authDomain: "rupeeflowsync.firebaseapp.com",
@@ -30,12 +13,44 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+
+// ==========================================
+// 2. GOOGLE LOGIN & LOGOUT FUNCTIONS
+// ==========================================
+function loginWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(provider)
+    .then((result) => {
+      console.log("Successfully logged in as:", result.user.displayName);
+      // Load or sync user data after successful login
+      if (typeof loadUserData === "function") {
+        loadUserData();
+      }
+    })
+    .catch((error) => {
+      console.error("Google Login Error:", error.message);
+      alert("Login failed: " + error.message);
+    });
+}
+
+function logoutUser() {
+  firebase.auth().signOut()
+    .then(() => {
+      console.log("Logged out successfully");
+    })
+    .catch((error) => {
+      console.error("Logout Error:", error.message);
+    });
+}
+
+// ==========================================
+// 3. APP CONSTANTS & VARIABLES
+// ==========================================
 const EXPENSE_CATEGORIES = [
   "Food & Snacks", "Transportation", "Shopping", "Education",
   "Mobile Recharge", "Bills & Electricity", "Entertainment",
   "Medical", "Groceries", "Rent", "Travel", "Other"
 ];
-
 const INCOME_CATEGORIES = [
   "Salary", "Pocket Money", "Freelance Income",
   "Scholarship", "Interest", "Other Income"
