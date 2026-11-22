@@ -1,3 +1,31 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyCZH5LRgfHfb4PemAa-0yOYr3j3H2C3k",
+  authDomain: "rupeeflowsync.firebaseapp.com",
+  projectId: "rupeeflowsync",
+  storageBucket: "rupeeflowsync.firebasestorage.app",
+  messagingSenderId: "871999494809",
+  appId: "1:871999494809:web:d2e2ebbdef1772aaab608",
+  measurementId: "G-RRH5J2ZCZG"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function loginWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(provider)
+    .then((result) => {
+      console.log("Successfully logged in as:", result.user.displayName);
+      if (typeof loadUserData === "function") { loadUserData(); }
+    })
+    .catch((error) => {
+      console.error("Google Login Error:", error.message);
+    });
+}
+
+function logoutUser() {
+  firebase.auth().signOut();
+}
 // ==========================================
 // 1. INITIALIZE FIREBASE FIRST
 // ==========================================
