@@ -6,21 +6,16 @@
   <meta name="theme-color" content="#2563eb" />
   <title>RupeeFlow Pro — Complete Personal Finance & Expense Tracker</title>
   
+  <!-- Firebase SDK Scripts -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-
-  <div id="auth-container" style="padding: 15px; text-align: center;">
-  <button onclick="loginWithGoogle()" style="background-color: #4285F4; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; cursor: pointer;">
-    Sign in with Google
-  </button>
-</div>
 
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-  <body>
-  <!-- 1. FULL-SCREEN LOGIN OVERLAY (Shown First) -->
+<body>
+  <!-- 1. FULL-SCREEN GOOGLE LOGIN OVERLAY (Shown First) -->
   <div id="login-screen" style="position: fixed; inset: 0; background: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; text-align: center; padding: 20px;">
     <div style="background: white; padding: 40px 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); max-width: 400px; width: 100%;">
       <h1 style="margin: 0 0 8px; color: #1e293b; font-size: 28px;">RupeeFlow Pro</h1>
@@ -33,623 +28,491 @@
     </div>
   </div>
 
-  <!-- 2. MAIN APP DASHBOARD (Hidden until logged in) -->
+  <!-- 2. MAIN APP DASHBOARD & PIN LOCK (Hidden until Google Sign-In succeeds) -->
   <div id="app-dashboard" style="display: none;">
-    <!-- KEEP ALL YOUR EXISTING SIDEBAR & DASHBOARD HTML INSIDE HERE -->
-  </div>
-
-  <script src="script.js"></script>
-</body>
-<body>
-  <!-- 4-DIGIT PIN LOCK SCREEN -->
-  <div id="lockScreen" class="lock-overlay">
-    <div class="lock-box">
-      <div class="lock-icon">🔒</div>
-      <h2 id="lockTitle">Create Security PIN</h2>
-      <p id="lockSubtitle" class="stat-sub mb-15">Set a 4-digit PIN to protect your financial data</p>
-      <form id="pinForm">
-        <input type="password" id="pinInput" maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="••••" required autofocus />
-        <p id="pinError" class="text-red" style="font-size:0.85rem; margin-top:8px; display:none;">Incorrect PIN.</p>
-        <button type="submit" class="btn-primary full-width" style="margin-top:15px;" id="pinSubmitBtn">Set PIN & Enter</button>
-      </form>
+    <!-- 4-DIGIT PIN LOCK SCREEN -->
+    <div id="lockScreen" class="lock-overlay">
+      <div class="lock-box">
+        <div class="lock-icon">🔒</div>
+        <h2 id="lockTitle">Create Security PIN</h2>
+        <p id="lockSubtitle" class="stat-sub mb-15">Set a 4-digit PIN to protect your financial data</p>
+        <form id="pinForm">
+          <input type="password" id="pinInput" maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="••••" required autofocus />
+          <p id="pinError" class="text-red" style="font-size:0.85rem; margin-top:8px; display:none;">Incorrect PIN.</p>
+          <button type="submit" class="btn-primary full-width" style="margin-top:15px;" id="pinSubmitBtn">Set PIN & Enter</button>
+        </form>
+      </div>
     </div>
-  </div>
 
-  <div class="app-container">
-    <!-- SIDEBAR NAVIGATION -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <div class="logo">
-          <span class="logo-icon">₹</span>
-          <div>
-            <span class="logo-text">RupeeFlow</span>
-            <span class="logo-badge">PRO</span>
+    <div class="app-container">
+      <!-- SIDEBAR NAVIGATION -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="logo">
+            <span class="logo-icon">₹</span>
+            <div>
+              <span class="logo-text">RupeeFlow</span>
+              <span class="logo-badge">PRO</span>
+            </div>
           </div>
-        </div>
-        <button class="mobile-close" id="closeSidebar">✕</button>
-      </div>
-
-      <nav class="nav-menu">
-        <button class="nav-item active" data-view="dashboard">📊 Dashboard</button>
-        <button class="nav-item" data-view="add-tx">➕ Add Transaction</button>
-        <button class="nav-item" data-view="transactions">💸 Transaction History</button>
-        <button class="nav-item" data-view="calendar">📅 Daily Calendar</button>
-        <button class="nav-item" data-view="wallets">👛 Wallets & Accounts</button>
-        <button class="nav-item" data-view="budget">🎯 Budget Planner</button>
-        <button class="nav-item" data-view="savings">🏦 Savings & Wishlist</button>
-        <button class="nav-item" data-view="bills">🔁 Bills & Subscriptions</button>
-        <button class="nav-item" data-view="lending">🤝 Lending & Borrowing</button>
-        <button class="nav-item" data-view="analytics">📈 Analytics & Reports</button>
-        <button class="nav-item" data-view="insights">🧠 Smart Insights</button>
-        <button class="nav-item" data-view="settings">⚙️ Settings & Backup</button>
-      </nav>
-
-      <div class="sidebar-footer">
-        <button class="btn-outline full-width" onclick="lockApp()">🔒 Lock Website</button>
-      </div>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <main class="main-content">
-      <header class="top-header">
-        <div class="header-left">
-          <button class="mobile-menu-btn" id="openSidebar">☰</button>
-          <div>
-            <h1 id="pageTitle">Dashboard</h1>
-            <p class="current-date" id="currentDateDisplay"></p>
-          </div>
-        </div>
-        <div class="header-actions">
-          <button class="btn-voice" id="voiceBtn" title="Speak to add expense">🎙️ Voice Add</button>
-          <button class="btn-outline" onclick="switchView('add-tx'); setTxTab('transfer')">⇄ Transfer</button>
-          <button class="btn-success" onclick="switchView('add-tx'); setTxTab('income')">+ Income</button>
-          <button class="btn-primary" onclick="switchView('add-tx'); setTxTab('expense')">+ Expense</button>
-        </div>
-      </header>
-
-      <div id="globalAlerts"></div>
-
-      <!-- 1. DASHBOARD -->
-      <section id="view-dashboard" class="view active">
-        <div class="stats-grid">
-          <div class="stat-card gradient-blue">
-            <span class="stat-label">Total Net Balance</span>
-            <h2 class="stat-value" id="dashTotalBalance">₹0</h2>
-            <span class="stat-sub">Across all wallets</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Today's Spending</span>
-            <h2 class="stat-value" id="dashTodaySpend">₹0</h2>
-            <span class="stat-sub" id="dashDailyLimitSub">No daily limit set</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Monthly Income</span>
-            <h2 class="stat-value text-green" id="dashMonthIncome">₹0</h2>
-            <span class="stat-sub">Current Month</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Monthly Expenses</span>
-            <h2 class="stat-value text-red" id="dashMonthExpense">₹0</h2>
-            <span class="stat-sub" id="dashForecastSub">Forecast: ₹0 by month-end</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Remaining Monthly Budget</span>
-            <h2 class="stat-value" id="dashRemBudget">₹0</h2>
-            <span class="stat-sub" id="dashBudgetPct">No monthly budget set</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Total Savings & Emergency</span>
-            <h2 class="stat-value text-blue" id="dashTotalSavings">₹0</h2>
-            <span class="stat-sub" id="dashNoSpendCount">0 No-Spend Days this month</span>
-          </div>
+          <button class="mobile-close" id="closeSidebar">✕</button>
         </div>
 
-        <div class="wallets-strip" id="dashWalletsStrip"></div>
+        <nav class="nav-menu">
+          <button class="nav-item active" data-view="dashboard">📊 Dashboard</button>
+          <button class="nav-item" data-view="add-tx">➕ Add Transaction</button>
+          <button class="nav-item" data-view="transactions">💸 Transaction History</button>
+          <button class="nav-item" data-view="calendar">📅 Daily Calendar</button>
+          <button class="nav-item" data-view="wallets">👛 Wallets & Accounts</button>
+          <button class="nav-item" data-view="budget">🎯 Budget Planner</button>
+          <button class="nav-item" data-view="savings">🏦 Savings & Wishlist</button>
+          <button class="nav-item" data-view="bills">🔁 Bills & Subscriptions</button>
+          <button class="nav-item" data-view="lending">🤝 Lending & Borrowing</button>
+          <button class="nav-item" data-view="analytics">📈 Analytics & Reports</button>
+          <button class="nav-item" data-view="insights">🧠 Smart Insights</button>
+          <button class="nav-item" data-view="settings">⚙️ Settings & Backup</button>
+        </nav>
 
-        <div class="dashboard-charts-grid">
+        <div class="sidebar-footer">
+          <button class="btn-outline full-width mb-10" onclick="lockApp()">🔒 Lock Website</button>
+          <button class="btn-outline full-width" onclick="logoutUser()" style="border-color: #ef4444; color: #ef4444;">🚪 Sign Out</button>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+        <header class="top-header">
+          <div class="header-left">
+            <button class="mobile-menu-btn" id="openSidebar">☰</button>
+            <div>
+              <h1 id="pageTitle">Dashboard</h1>
+              <p class="current-date" id="currentDateDisplay"></p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button class="btn-voice" id="voiceBtn" title="Speak to add expense">🎙️ Voice Add</button>
+            <button class="btn-outline" onclick="switchView('add-tx'); setTxTab('transfer')">⇄ Transfer</button>
+            <button class="btn-success" onclick="switchView('add-tx'); setTxTab('income')">+ Income</button>
+            <button class="btn-primary" onclick="switchView('add-tx'); setTxTab('expense')">+ Expense</button>
+          </div>
+        </header>
+
+        <div id="globalAlerts"></div>
+
+        <!-- 1. DASHBOARD -->
+        <section id="view-dashboard" class="view active">
+          <div class="stats-grid">
+            <div class="stat-card gradient-blue">
+              <span class="stat-label">Total Net Balance</span>
+              <h2 class="stat-value" id="dashTotalBalance">₹0</h2>
+              <span class="stat-sub">Across all wallets</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Today's Spending</span>
+              <h2 class="stat-value" id="dashTodaySpend">₹0</h2>
+              <span class="stat-sub" id="dashDailyLimitSub">No daily limit set</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Monthly Income</span>
+              <h2 class="stat-value text-green" id="dashMonthIncome">₹0</h2>
+              <span class="stat-sub">Current Month</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Monthly Expenses</span>
+              <h2 class="stat-value text-red" id="dashMonthExpense">₹0</h2>
+              <span class="stat-sub" id="dashForecastSub">Forecast: ₹0 by month-end</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Remaining Monthly Budget</span>
+              <h2 class="stat-value" id="dashRemBudget">₹0</h2>
+              <span class="stat-sub" id="dashBudgetPct">No monthly budget set</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Total Savings & Emergency</span>
+              <h2 class="stat-value text-blue" id="dashTotalSavings">₹0</h2>
+              <span class="stat-sub" id="dashNoSpendCount">0 No-Spend Days this month</span>
+            </div>
+          </div>
+
+          <div class="wallets-strip" id="dashWalletsStrip"></div>
+
+          <div class="dashboard-charts-grid">
+            <div class="card">
+              <h3>Spending by Category (This Month)</h3>
+              <div class="chart-wrapper"><canvas id="dashCategoryChart"></canvas></div>
+            </div>
+            <div class="card">
+              <h3>Income vs Expenses (This Month)</h3>
+              <div class="chart-wrapper"><canvas id="dashIncomeExpenseChart"></canvas></div>
+            </div>
+          </div>
+
           <div class="card">
-            <h3>Spending by Category (This Month)</h3>
-            <div class="chart-wrapper"><canvas id="dashCategoryChart"></canvas></div>
+            <div class="card-header">
+              <h3>Recent Transactions</h3>
+              <button class="btn-link" onclick="switchView('transactions')">See All →</button>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Wallet / Method</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="recentTransactionsBody"></tbody>
+              </table>
+            </div>
           </div>
-          <div class="card">
-            <h3>Income vs Expenses (This Month)</h3>
-            <div class="chart-wrapper"><canvas id="dashIncomeExpenseChart"></canvas></div>
-          </div>
-        </div>
+        </section>
 
-        <div class="card">
-          <div class="card-header">
-            <h3>Recent Transactions</h3>
-            <button class="btn-link" onclick="switchView('transactions')">See All →</button>
-          </div>
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Category</th>
-                  <th>Wallet / Method</th>
-                  <th>Date</th>
-                  <th>Amount</th>
-                </tr>
-              </thead>
-              <tbody id="recentTransactionsBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- 2. ADD TRANSACTION -->
-      <section id="view-add-tx" class="view">
-        <div class="card max-w-680">
-          <div class="tx-tabs">
-            <button type="button" class="tx-tab active" id="tab-expense" onclick="setTxTab('expense')">💸 Expense</button>
-            <button type="button" class="tx-tab" id="tab-income" onclick="setTxTab('income')">💰 Income</button>
-            <button type="button" class="tx-tab" id="tab-transfer" onclick="setTxTab('transfer')">⇄ Wallet Transfer</button>
-          </div>
-
-          <form id="txForm">
-            <input type="hidden" id="txId" />
-            <input type="hidden" id="txType" value="expense" />
-
-            <div class="form-row">
-              <div class="form-group">
-                <label>Amount (₹) *</label>
-                <input type="number" id="txAmount" step="0.01" min="0.01" placeholder="e.g. 250" required />
-              </div>
-              <div class="form-group">
-                <label>Date *</label>
-                <input type="date" id="txDate" required />
-              </div>
+        <!-- 2. ADD TRANSACTION -->
+        <section id="view-add-tx" class="view">
+          <div class="card max-w-680">
+            <div class="tx-tabs">
+              <button type="button" class="tx-tab active" id="tab-expense" onclick="setTxTab('expense')">💸 Expense</button>
+              <button type="button" class="tx-tab" id="tab-income" onclick="setTxTab('income')">💰 Income</button>
+              <button type="button" class="tx-tab" id="tab-transfer" onclick="setTxTab('transfer')">⇄ Wallet Transfer</button>
             </div>
 
-            <div class="form-group">
-              <label id="txNameLabel">Expense Title *</label>
-              <input type="text" id="txName" placeholder="e.g. Lunch, Metro, Salary, Transfer" required />
-            </div>
-
-            <div id="standardTxFields">
-              <div class="form-row">
-                <div class="form-group">
-                  <label>Category / Source *</label>
-                  <select id="txCategory"></select>
-                </div>
-                <div class="form-group">
-                  <label>Wallet / Account *</label>
-                  <select id="txWallet"></select>
-                </div>
-              </div>
+            <form id="txForm">
+              <input type="hidden" id="txId" />
+              <input type="hidden" id="txType" value="expense" />
 
               <div class="form-row">
                 <div class="form-group">
-                  <label>Payment App / Method *</label>
-                  <select id="txMethod">
-                    <option value="Google Pay (GPay)">Google Pay (GPay)</option>
-                    <option value="PhonePe">PhonePe</option>
-                    <option value="Paytm">Paytm</option>
-                    <option value="BHIM UPI">BHIM UPI</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Debit Card">Debit Card</option>
-                    <option value="Credit Card">Credit Card</option>
-                    <option value="Bank Transfer">Bank Transfer</option>
-                  </select>
+                  <label>Amount (₹) *</label>
+                  <input type="number" id="txAmount" step="0.01" min="0.01" placeholder="e.g. 250" required />
                 </div>
                 <div class="form-group">
-                  <label>Tag</label>
-                  <select id="txTag">
-                    <option value="Personal">Personal</option>
-                    <option value="College">College</option>
-                    <option value="Work">Work</option>
-                    <option value="Travel">Travel</option>
-                    <option value="Family">Family</option>
-                  </select>
+                  <label>Date *</label>
+                  <input type="date" id="txDate" required />
                 </div>
               </div>
-            </div>
 
-            <div id="transferTxFields" class="hidden">
+              <div class="form-group">
+                <label id="txNameLabel">Expense Title *</label>
+                <input type="text" id="txName" placeholder="e.g. Lunch, Metro, Salary, Transfer" required />
+              </div>
+
+              <div id="standardTxFields">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Category / Source *</label>
+                    <select id="txCategory"></select>
+                  </div>
+                  <div class="form-group">
+                    <label>Wallet / Account *</label>
+                    <select id="txWallet"></select>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Payment App / Method *</label>
+                    <select id="txMethod">
+                      <option value="Google Pay (GPay)">Google Pay (GPay)</option>
+                      <option value="PhonePe">PhonePe</option>
+                      <option value="Paytm">Paytm</option>
+                      <option value="BHIM UPI">BHIM UPI</option>
+                      <option value="Cash">Cash</option>
+                      <option value="Debit Card">Debit Card</option>
+                      <option value="Credit Card">Credit Card</option>
+                      <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Tag</label>
+                    <select id="txTag">
+                      <option value="Personal">Personal</option>
+                      <option value="College">College</option>
+                      <option value="Work">Work</option>
+                      <option value="Travel">Travel</option>
+                      <option value="Family">Family</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div id="transferTxFields" class="hidden">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>From Wallet *</label>
+                    <select id="txFromWallet"></select>
+                  </div>
+                  <div class="form-group">
+                    <label>To Wallet *</label>
+                    <select id="txToWallet"></select>
+                  </div>
+                </div>
+                <p class="stat-sub mb-15">ℹ️ Transfers move money between your wallets without inflating your income or expenses.</p>
+              </div>
+
               <div class="form-row">
                 <div class="form-group">
-                  <label>From Wallet *</label>
-                  <select id="txFromWallet"></select>
+                  <label>Notes (Optional)</label>
+                  <input type="text" id="txNotes" placeholder="Extra details..." />
                 </div>
                 <div class="form-group">
-                  <label>To Wallet *</label>
-                  <select id="txToWallet"></select>
+                  <label>Attach Bill / Receipt Image (Optional)</label>
+                  <input type="file" id="txReceipt" accept="image/*" />
                 </div>
               </div>
-              <p class="stat-sub mb-15">ℹ️ Transfers move money between your wallets without inflating your income or expenses.</p>
-            </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label>Notes (Optional)</label>
-                <input type="text" id="txNotes" placeholder="Extra details..." />
+              <div class="modal-actions">
+                <button type="button" class="btn-outline" onclick="resetTxForm()">Clear</button>
+                <button type="submit" class="btn-primary" id="txSubmitBtn">Save Transaction</button>
               </div>
-              <div class="form-group">
-                <label>Attach Bill / Receipt Image (Optional)</label>
-                <input type="file" id="txReceipt" accept="image/*" />
+            </form>
+          </div>
+        </section>
+
+        <!-- 3. TRANSACTION HISTORY -->
+        <section id="view-transactions" class="view">
+          <div class="card">
+            <div class="filters-bar-adv">
+              <input type="text" id="searchInput" placeholder="Search title, note, payment app..." />
+              <input type="number" id="searchAmount" placeholder="Exact amount (₹)..." />
+              <select id="filterPeriod">
+                <option value="all">All Time</option>
+                <option value="day">Today</option>
+                <option value="week">This Week</option>
+                <option value="month" selected>This Month</option>
+                <option value="year">This Year</option>
+              </select>
+              <select id="filterType">
+                <option value="all">All Types</option>
+                <option value="expense">Expenses</option>
+                <option value="income">Income</option>
+                <option value="transfer">Transfers</option>
+              </select>
+              <select id="filterCategory">
+                <option value="all">All Categories</option>
+              </select>
+              <select id="filterWallet">
+                <option value="all">All Wallets</option>
+              </select>
+            </div>
+
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Title & Tag</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Wallet / Method</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Receipt</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="allTransactionsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. DAILY CALENDAR & HEATMAP -->
+        <section id="view-calendar" class="view">
+          <div class="calendar-layout">
+            <div class="card">
+              <div class="calendar-header">
+                <button class="btn-outline" id="prevMonthBtn">◀ Prev</button>
+                <h3 id="calendarMonthLabel">Month Year</h3>
+                <button class="btn-outline" id="nextMonthBtn">Next ▶</button>
               </div>
+              <div class="heatmap-legend">
+                <span class="legend-item"><i class="dot dot-nospend"></i> No-Spend Day</span>
+                <span class="legend-item"><i class="dot dot-low"></i> Low Spend</span>
+                <span class="legend-item"><i class="dot dot-med"></i> Medium Spend</span>
+                <span class="legend-item"><i class="dot dot-high"></i> High Spend</span>
+              </div>
+              <div class="calendar-weekdays">
+                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+              </div>
+              <div class="calendar-grid" id="calendarGrid"></div>
             </div>
 
-            <div class="modal-actions">
-              <button type="button" class="btn-outline" onclick="resetTxForm()">Clear</button>
-              <button type="submit" class="btn-primary" id="txSubmitBtn">Save Transaction</button>
+            <div class="card">
+              <h3 id="selectedDateTitle">Select a Date</h3>
+              <p class="stat-sub mb-15" id="selectedDateSummary">Spent: ₹0 | Income: ₹0</p>
+              <div id="selectedDateTransactions" class="date-tx-list"></div>
             </div>
-          </form>
-        </div>
-      </section>
-
-      <!-- 3. TRANSACTION HISTORY -->
-      <section id="view-transactions" class="view">
-        <div class="card">
-          <div class="filters-bar-adv">
-            <input type="text" id="searchInput" placeholder="Search title, note, payment app..." />
-            <input type="number" id="searchAmount" placeholder="Exact amount (₹)..." />
-            <select id="filterPeriod">
-              <option value="all">All Time</option>
-              <option value="day">Today</option>
-              <option value="week">This Week</option>
-              <option value="month" selected>This Month</option>
-              <option value="year">This Year</option>
-            </select>
-            <select id="filterType">
-              <option value="all">All Types</option>
-              <option value="expense">Expenses</option>
-              <option value="income">Income</option>
-              <option value="transfer">Transfers</option>
-            </select>
-            <select id="filterCategory">
-              <option value="all">All Categories</option>
-            </select>
-            <select id="filterWallet">
-              <option value="all">All Wallets</option>
-            </select>
           </div>
+        </section>
 
-          <div class="table-responsive">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Title & Tag</th>
-                  <th>Type</th>
-                  <th>Category</th>
-                  <th>Wallet / Method</th>
-                  <th>Date</th>
-                  <th>Amount</th>
-                  <th>Receipt</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="allTransactionsBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- 4. DAILY CALENDAR & HEATMAP -->
-      <section id="view-calendar" class="view">
-        <div class="calendar-layout">
-          <div class="card">
-            <div class="calendar-header">
-              <button class="btn-outline" id="prevMonthBtn">◀ Prev</button>
-              <h3 id="calendarMonthLabel">Month Year</h3>
-              <button class="btn-outline" id="nextMonthBtn">Next ▶</button>
-            </div>
-            <div class="heatmap-legend">
-              <span class="legend-item"><i class="dot dot-nospend"></i> No-Spend Day</span>
-              <span class="legend-item"><i class="dot dot-low"></i> Low Spend</span>
-              <span class="legend-item"><i class="dot dot-med"></i> Medium Spend</span>
-              <span class="legend-item"><i class="dot dot-high"></i> High Spend</span>
-            </div>
-            <div class="calendar-weekdays">
-              <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-            </div>
-            <div class="calendar-grid" id="calendarGrid"></div>
-          </div>
-
-          <div class="card">
-            <h3 id="selectedDateTitle">Select a Date</h3>
-            <p class="stat-sub mb-15" id="selectedDateSummary">Spent: ₹0 | Income: ₹0</p>
-            <div id="selectedDateTransactions" class="date-tx-list"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 5. WALLETS & ACCOUNTS -->
-      <section id="view-wallets" class="view">
-        <div class="card max-w-680 mb-20">
-          <h3>Add New Wallet / Account</h3>
-          <form id="walletForm" class="grid-form-3">
-            <input type="text" id="newWalletName" placeholder="Account Name (e.g. PayPal, Custom Wallet)" required />
-            <input type="number" id="newWalletBalance" step="0.01" placeholder="Initial Balance (₹)" value="0" required />
-            <button type="submit" class="btn-primary">Add Wallet</button>
-          </form>
-        </div>
-        <div id="walletsGrid" class="savings-list"></div>
-      </section>
-
-      <!-- 6. BUDGET PLANNER -->
-      <section id="view-budget" class="view">
-        <div class="dashboard-charts-grid">
-          <div class="card">
-            <h3>Daily Spending Limit</h3>
-            <p class="stat-sub mb-10">Set a daily cap to control impulse spending.</p>
-            <form id="dailyLimitForm" class="inline-form">
-              <input type="number" id="dailyLimitInput" placeholder="Daily limit in ₹ (e.g. 300)" min="0" required />
-              <button type="submit" class="btn-primary">Save Daily Limit</button>
+        <!-- 5. WALLETS & ACCOUNTS -->
+        <section id="view-wallets" class="view">
+          <div class="card max-w-680 mb-20">
+            <h3>Add New Wallet / Account</h3>
+            <form id="walletForm" class="grid-form-3">
+              <input type="text" id="newWalletName" placeholder="Account Name (e.g. PayPal, Custom Wallet)" required />
+              <input type="number" id="newWalletBalance" step="0.01" placeholder="Initial Balance (₹)" value="0" required />
+              <button type="submit" class="btn-primary">Add Wallet</button>
             </form>
-            <div class="budget-numbers">
-              <span>Daily Limit: <strong id="dispDailyLimit">₹0</strong></span>
-              <span>Spent Today: <strong class="text-red" id="dispDailySpent">₹0</strong></span>
-              <span>Remaining Today: <strong class="text-green" id="dispDailyRem">₹0</strong></span>
+          </div>
+          <div id="walletsGrid" class="savings-list"></div>
+        </section>
+
+        <!-- 6. BUDGET PLANNER -->
+        <section id="view-budget" class="view">
+          <div class="dashboard-charts-grid">
+            <div class="card">
+              <h3>Daily Spending Limit</h3>
+              <p class="stat-sub mb-10">Set a daily cap to control impulse spending.</p>
+              <form id="dailyLimitForm" class="inline-form">
+                <input type="number" id="dailyLimitInput" placeholder="Daily limit in ₹ (e.g. 300)" min="0" required />
+                <button type="submit" class="btn-primary">Save Daily Limit</button>
+              </form>
+              <div class="budget-numbers">
+                <span>Daily Limit: <strong id="dispDailyLimit">₹0</strong></span>
+                <span>Spent Today: <strong class="text-red" id="dispDailySpent">₹0</strong></span>
+                <span>Remaining Today: <strong class="text-green" id="dispDailyRem">₹0</strong></span>
+              </div>
+              <div class="progress-container"><div class="progress-bar" id="dailyProgressBar"></div></div>
             </div>
-            <div class="progress-container"><div class="progress-bar" id="dailyProgressBar"></div></div>
-          </div>
 
-          <div class="card">
-            <h3>Monthly Spending Budget</h3>
-            <p class="stat-sub mb-10">Set your overall monthly expense limit.</p>
-            <form id="monthlyBudgetForm" class="inline-form">
-              <input type="number" id="monthlyBudgetInput" placeholder="Monthly limit in ₹" min="0" required />
-              <button type="submit" class="btn-primary">Save Monthly Budget</button>
-            </form>
-            <div class="budget-numbers">
-              <span>Monthly Limit: <strong id="dispMonthLimit">₹0</strong></span>
-              <span>Spent: <strong class="text-red" id="dispMonthSpent">₹0</strong></span>
-              <span>Remaining: <strong class="text-green" id="dispMonthRem">₹0</strong></span>
-            </div>
-            <div class="progress-container"><div class="progress-bar" id="monthlyProgressBar"></div></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>Category-Wise Spending Limits</h3>
-          <form id="catLimitForm" class="grid-form-3 mb-20">
-            <select id="catLimitCategory"></select>
-            <input type="number" id="catLimitAmount" placeholder="Monthly Category Limit (₹)" min="1" required />
-            <button type="submit" class="btn-primary">Set Category Limit</button>
-          </form>
-          <div id="categoryLimitsList" class="savings-list"></div>
-        </div>
-      </section>
-
-      <!-- 7. SAVINGS GOALS, EMERGENCY FUND & WISHLIST -->
-      <section id="view-savings" class="view">
-        <div class="card max-w-680 mb-20">
-          <h3>🚨 Emergency Fund Tracker</h3>
-          <form id="emergencyForm" class="grid-form-3">
-            <input type="number" id="emTargetInput" placeholder="Emergency Target (₹)" min="0" required />
-            <input type="number" id="emSavedInput" placeholder="Current Emergency Fund (₹)" min="0" required />
-            <button type="submit" class="btn-primary">Update Emergency Fund</button>
-          </form>
-          <div style="margin-top:15px;">
-            <div class="budget-numbers">
-              <span>Saved: <strong class="text-green" id="emSavedDisp">₹0</strong></span>
-              <span>Target: <strong id="emTargetDisp">₹0</strong></span>
-              <span id="emPctDisp">0%</span>
-            </div>
-            <div class="progress-container"><div class="progress-bar" id="emProgressBar"></div></div>
-          </div>
-        </div>
-
-        <div class="dashboard-charts-grid">
-          <div class="card">
-            <h3>🎯 Create Savings Goal</h3>
-            <form id="savingsForm" class="grid-form">
-              <input type="text" id="goalName" placeholder="Goal (e.g. Laptop)" required />
-              <input type="number" id="goalTarget" placeholder="Target (₹)" min="1" required />
-              <input type="number" id="goalSaved" placeholder="Saved (₹)" min="0" value="0" required />
-              <button type="submit" class="btn-primary">Add</button>
-            </form>
-            <div id="savingsGoalsList" style="margin-top:15px;"></div>
-          </div>
-
-          <div class="card">
-            <h3>🏆 Savings Challenges</h3>
-            <form id="challengeForm" class="grid-form-3">
-              <input type="text" id="chalName" placeholder="e.g. Save ₹50/day" required />
-              <input type="number" id="chalTarget" placeholder="Target Amount (₹)" min="1" required />
-              <button type="submit" class="btn-primary">Start</button>
-            </form>
-            <div id="challengesList" style="margin-top:15px;"></div>
-          </div>
-        </div>
-
-        <div class="dashboard-charts-grid">
-          <div class="card">
-            <h3>🛍️ Purchase Wishlist Tracker</h3>
-            <form id="wishlistForm" class="grid-form-3">
-              <input type="text" id="wishName" placeholder="Item Name" required />
-              <input type="number" id="wishCost" placeholder="Estimated Cost (₹)" min="1" required />
-              <button type="submit" class="btn-primary">Add Item</button>
-            </form>
-            <div id="wishlistContainer" style="margin-top:15px;"></div>
-          </div>
-
-          <div class="card">
-            <h3>📝 Financial Decisions & Notes</h3>
-            <form id="noteForm" class="inline-form">
-              <input type="text" id="finNoteInput" placeholder="Write a financial note..." required />
-              <button type="submit" class="btn-primary">Save Note</button>
-            </form>
-            <div id="finNotesList"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 8. BILLS & RECURRING -->
-      <section id="view-bills" class="view">
-        <div class="card max-w-680 mb-20">
-          <h3>Add Recurring Bill / Subscription / Income</h3>
-          <form id="recurringForm" class="grid-form-4">
-            <input type="text" id="recName" placeholder="Title (e.g. Rent, Jio)" required />
-            <input type="number" id="recAmount" placeholder="Amount (₹)" min="1" required />
-            <select id="recType">
-              <option value="expense">Recurring Expense</option>
-              <option value="income">Recurring Income</option>
-            </select>
-            <select id="recFreq">
-              <option value="Monthly">Monthly</option>
-              <option value="Weekly">Weekly</option>
-              <option value="Yearly">Yearly</option>
-            </select>
-            <select id="recCategory"></select>
-            <input type="date" id="recDueDate" required />
-            <button type="submit" class="btn-primary">Add Schedule</button>
-          </form>
-        </div>
-        <div id="recurringList" class="savings-list"></div>
-      </section>
-
-      <!-- 9. LENDING & BORROWING -->
-      <section id="view-lending" class="view">
-        <div class="card max-w-680 mb-20">
-          <h3>Record Money Lent or Borrowed</h3>
-          <form id="lendingForm" class="grid-form-4">
-            <select id="lendType">
-              <option value="lent">Money Lent (They owe me)</option>
-              <option value="borrowed">Money Borrowed (I owe them)</option>
-            </select>
-            <input type="text" id="lendPerson" placeholder="Friend / Person Name" required />
-            <input type="number" id="lendAmount" placeholder="Amount (₹)" min="1" required />
-            <input type="date" id="lendDueDate" required />
-            <input type="text" id="lendNote" placeholder="Reason / Note" />
-            <button type="submit" class="btn-primary">Save Record</button>
-          </form>
-        </div>
-
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-label">Total Owed To You (Lent)</span>
-            <h2 class="stat-value text-green" id="totalLentDisp">₹0</h2>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Total You Owe (Borrowed)</span>
-            <h2 class="stat-value text-red" id="totalBorrowedDisp">₹0</h2>
-          </div>
-        </div>
-
-        <div id="lendingList" class="savings-list"></div>
-      </section>
-
-      <!-- 10. ANALYTICS & REPORTS -->
-      <section id="view-analytics" class="view">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-label">This Week vs Last Week</span>
-            <h2 class="stat-value" id="weekCompareVal">₹0</h2>
-            <span class="stat-sub" id="weekCompareSub">No data yet</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">This Month vs Last Month</span>
-            <h2 class="stat-value" id="monthCompareVal">₹0</h2>
-            <span class="stat-sub" id="monthCompareSub">No data yet</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Yearly Income (Current Year)</span>
-            <h2 class="stat-value text-green" id="yearIncomeVal">₹0</h2>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">Yearly Expenses (Current Year)</span>
-            <h2 class="stat-value text-red" id="yearExpenseVal">₹0</h2>
-          </div>
-        </div>
-
-        <div class="reports-grid">
-          <div class="card">
-            <h3>Daily Spending (Last 14 Days)</h3>
-            <div class="chart-wrapper"><canvas id="repDailyChart"></canvas></div>
-          </div>
-          <div class="card">
-            <h3>Monthly Spending (Last 6 Months)</h3>
-            <div class="chart-wrapper"><canvas id="repMonthlyChart"></canvas></div>
-          </div>
-          <div class="card">
-            <h3>Category Breakdown</h3>
-            <div class="chart-wrapper"><canvas id="repCategoryChart"></canvas></div>
-          </div>
-          <div class="card">
-            <h3>Wallet Balance Distribution</h3>
-            <div class="chart-wrapper"><canvas id="repWalletChart"></canvas></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 11. SMART INSIGHTS -->
-      <section id="view-insights" class="view">
-        <div class="card">
-          <h3>🧠 Real-Data Smart Financial Insights</h3>
-          <p class="stat-sub mb-15">Automatically generated from your actual recorded transactions.</p>
-          <div id="smartInsightsList" class="insights-list"></div>
-        </div>
-      </section>
-
-      <!-- 12. SETTINGS & BACKUP -->
-      <section id="view-settings" class="view">
-        <div class="dashboard-charts-grid">
-          <div class="card">
-            <h3>⏰ Daily Evening Expense Reminder</h3>
-            <p class="stat-sub mb-10">Set a daily reminder time to log your expenses.</p>
-            <form id="reminderForm" class="inline-form">
-              <input type="time" id="reminderTimeInput" value="21:00" required />
-              <button type="submit" class="btn-primary">Enable Reminder</button>
-            </form>
-            <p class="stat-sub" id="reminderStatus">Reminder not active.</p>
-          </div>
-
-          <div class="card">
-            <h3>🎨 Appearance & Privacy</h3>
-            <div style="display:flex; flex-direction:column; gap:10px; margin-top:12px;">
-              <button class="btn-outline" id="themeToggle">🌙 Toggle Dark / Light Mode</button>
-              <button class="btn-outline" onclick="changePin()">🔑 Change 4-Digit Security PIN</button>
-              <button class="btn-outline" onclick="lockApp()">🔒 Lock Website Now</button>
+            <div class="card">
+              <h3>Monthly Spending Budget</h3>
+              <p class="stat-sub mb-10">Set your overall monthly expense limit.</p>
+              <form id="monthlyBudgetForm" class="inline-form">
+                <input type="number" id="monthlyBudgetInput" placeholder="Monthly limit in ₹" min="0" required />
+                <button type="submit" class="btn-primary">Save Monthly Budget</button>
+              </form>
+              <div class="budget-numbers">
+                <span>Monthly Limit: <strong id="dispMonthLimit">₹0</strong></span>
+                <span>Spent: <strong class="text-red" id="dispMonthSpent">₹0</strong></span>
+                <span>Remaining: <strong class="text-green" id="dispMonthRem">₹0</strong></span>
+              </div>
+              <div class="progress-container"><div class="progress-bar" id="monthlyProgressBar"></div></div>
             </div>
           </div>
 
           <div class="card">
-            <h3>📱 Link Phone & Data Backup</h3>
-            <p class="stat-sub mb-10">Scan QR code to open on your phone, or export/restore your JSON backup or Excel CSV.</p>
-            <div class="qr-container"><img id="qrCodeImg" alt="QR Code" /></div>
-            <div class="sync-buttons">
-              <button class="btn-primary" id="exportCsvBtn">📥 Export Excel (CSV)</button>
-              <button class="btn-outline" onclick="downloadBackupJSON()">💾 Backup Data (.json)</button>
-              <label class="btn-outline file-upload-btn">
-                📂 Restore Backup
-                <input type="file" id="importJsonInput" accept=".json" hidden />
-              </label>
+            <h3>Category-Wise Spending Limits</h3>
+            <form id="catLimitForm" class="grid-form-3 mb-20">
+              <select id="catLimitCategory"></select>
+              <input type="number" id="catLimitAmount" placeholder="Monthly Category Limit (₹)" min="1" required />
+              <button type="submit" class="btn-primary">Set Category Limit</button>
+            </form>
+            <div id="categoryLimitsList" class="savings-list"></div>
+          </div>
+        </section>
+
+        <!-- 7. SAVINGS GOALS, EMERGENCY FUND & WISHLIST -->
+        <section id="view-savings" class="view">
+          <div class="card max-w-680 mb-20">
+            <h3>🚨 Emergency Fund Tracker</h3>
+            <form id="emergencyForm" class="grid-form-3">
+              <input type="number" id="emTargetInput" placeholder="Emergency Target (₹)" min="0" required />
+              <input type="number" id="emSavedInput" placeholder="Current Emergency Fund (₹)" min="0" required />
+              <button type="submit" class="btn-primary">Update Emergency Fund</button>
+            </form>
+            <div style="margin-top:15px;">
+              <div class="budget-numbers">
+                <span>Saved: <strong class="text-green" id="emSavedDisp">₹0</strong></span>
+                <span>Target: <strong id="emTargetDisp">₹0</strong></span>
+                <span id="emPctDisp">0%</span>
+              </div>
+              <div class="progress-container"><div class="progress-bar" id="emProgressBar"></div></div>
             </div>
           </div>
 
-          <div class="card">
-            <h3>⚠️ Danger Zone</h3>
-            <p class="stat-sub mb-15">Erase all transactions, wallets, budgets, and goals back to ₹0.</p>
-            <button class="btn-danger-outline" id="resetDataBtn">🗑️ Reset Everything to ₹0</button>
+          <div class="dashboard-charts-grid">
+            <div class="card">
+              <h3>🎯 Create Savings Goal</h3>
+              <form id="savingsForm" class="grid-form">
+                <input type="text" id="goalName" placeholder="Goal (e.g. Laptop)" required />
+                <input type="number" id="goalTarget" placeholder="Target (₹)" min="1" required />
+                <input type="number" id="goalSaved" placeholder="Saved (₹)" min="0" value="0" required />
+                <button type="submit" class="btn-primary">Add</button>
+              </form>
+              <div id="savingsGoalsList" style="margin-top:15px;"></div>
+            </div>
+
+            <div class="card">
+              <h3>🏆 Savings Challenges</h3>
+              <form id="challengeForm" class="grid-form-3">
+                <input type="text" id="chalName" placeholder="e.g. Save ₹50/day" required />
+                <input type="number" id="chalTarget" placeholder="Target Amount (₹)" min="1" required />
+                <button type="submit" class="btn-primary">Start</button>
+              </form>
+              <div id="challengesList" style="margin-top:15px;"></div>
+            </div>
           </div>
-        </div>
-      </section>
-    </main>
 
-    <!-- MOBILE BOTTOM NAVIGATION -->
-    <nav class="mobile-bottom-nav">
-      <button onclick="switchView('dashboard')">📊<span>Home</span></button>
-      <button onclick="switchView('transactions')">💸<span>History</span></button>
-      <button class="fab-add" onclick="switchView('add-tx'); setTxTab('expense')">+</button>
-      <button onclick="switchView('calendar')">📅<span>Calendar</span></button>
-      <button onclick="switchView('wallets')">👛<span>Wallets</span></button>
-    </nav>
-  </div>
+          <div class="dashboard-charts-grid">
+            <div class="card">
+              <h3>🛍️ Purchase Wishlist Tracker</h3>
+              <form id="wishlistForm" class="grid-form-3">
+                <input type="text" id="wishName" placeholder="Item Name" required />
+                <input type="number" id="wishCost" placeholder="Estimated Cost (₹)" min="1" required />
+                <button type="submit" class="btn-primary">Add Item</button>
+              </form>
+              <div id="wishlistContainer" style="margin-top:15px;"></div>
+            </div>
 
-  <!-- RECEIPT MODAL -->
-  <div id="receiptModal" class="modal hidden" onclick="closeReceiptModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <h3>🧾 Attached Receipt</h3>
-        <button class="close-modal" onclick="closeReceiptModal()">✕</button>
-      </div>
-      <img id="receiptPreviewImg" style="width:100%; border-radius:10px;" alt="Receipt" />
-    </div>
-  </div>
+            <div class="card">
+              <h3>📝 Financial Decisions & Notes</h3>
+              <form id="noteForm" class="inline-form">
+                <input type="text" id="finNoteInput" placeholder="Write a financial note..." required />
+                <button type="submit" class="btn-primary">Save Note</button>
+              </form>
+              <div id="finNotesList"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. BILLS & RECURRING -->
+        <section id="view-bills" class="view">
+          <div class="card max-w-680 mb-20">
+            <h3>Add Recurring Bill / Subscription / Income</h3>
+            <form id="recurringForm" class="grid-form-4">
+              <input type="text" id="recName" placeholder="Title (e.g. Rent, Jio)" required />
+              <input type="number" id="recAmount" placeholder="Amount (₹)" min="1" required />
+              <select id="recType">
+                <option value="expense">Recurring Expense</option>
+                <option value="income">Recurring Income</option>
+              </select>
+              <select id="recFreq">
+                <option value="Monthly">Monthly</option>
+                <option value="Weekly">Weekly</option>
+                <option value="Yearly">Yearly</option>
+              </select>
+              <select id="recCategory"></select>
+              <input type="date" id="recDueDate" required />
+              <button type="submit" class="btn-primary">Add Schedule</button>
+            </form>
+          </div>
+          <div id="recurringList" class="savings-list"></div>
+        </section>
+
+        <!-- 9. LENDING & BORROWING -->
+        <section id="view-lending" class="view">
+          <div class="card max-w-680 mb-20">
+            <h3>Record Money Lent or Borrowed</h3>
+            <form id="lendingForm" class="grid-form-4">
+              <select id="lendType">
+                <option value="lent">Money Lent (They owe me)</option>
+                <option value="borrowed">Money Borrowed (I owe them)</option>
+              </select>
+              <input type="text" id="lendPerson" placeholder="Friend / Person Name" required />
+              <input type="number" id="lendAmount" placeholder="Amount (₹)" min="1" required />
+              <input type="date" id="lendDueDate" required />
+              <input type="text" id="lendNote" placeholder="Reason / Note" />
+              <button type="submit" class="btn-primary">Save Record</button>
+            </form>
+          </div>
+          <div id="lendingList" class="savings-list"></div>
+        </section>
+      </main>
+    </div> <!-- closes .app-container -->
+  </div> <!-- closes #app-dashboard -->
 
   <script src="script.js"></script>
 </body>
