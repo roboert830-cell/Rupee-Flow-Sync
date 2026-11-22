@@ -1,0 +1,9 @@
+{
+  "name": "RupeeFlow Expense Tracker",
+  "short_name": "RupeeFlow",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary"
+}
