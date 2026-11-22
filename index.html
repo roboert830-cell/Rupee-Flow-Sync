@@ -511,27 +511,103 @@
           <div id="lendingList" class="savings-list"></div>
         </section>
 
-        <!-- ANALYTICS & REPORTS VIEW -->
+       <!-- ANALYTICS & REPORTS VIEW -->
         <section id="view-analytics" class="view">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-label">This Week vs Last Week</span>
+              <h2 class="stat-value" id="anaWeekComp">₹0</h2>
+              <span class="stat-sub" id="anaWeekSub">₹0 vs previous 7 days</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">This Month vs Last Month</span>
+              <h2 class="stat-value" id="anaMonthComp">₹0</h2>
+              <span class="stat-sub" id="anaMonthSub">No last month data to compare</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Yearly Income (Current Year)</span>
+              <h2 class="stat-value text-green" id="anaYearIncome">₹0</h2>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Yearly Expenses (Current Year)</span>
+              <h2 class="stat-value text-red" id="anaYearExpense">₹0</h2>
+            </div>
+          </div>
+
+          <div class="dashboard-charts-grid">
+            <div class="card">
+              <h3>Daily Spending (Last 14 Days)</h3>
+              <div class="chart-wrapper"><canvas id="anaDailySpendChart"></canvas></div>
+            </div>
+            <div class="card">
+              <h3>Monthly Spending (Last 6 Months)</h3>
+              <div class="chart-wrapper"><canvas id="anaMonthlySpendChart"></canvas></div>
+            </div>
+            <div class="card">
+              <h3>Category Breakdown</h3>
+              <div class="chart-wrapper"><canvas id="anaCategoryChart"></canvas></div>
+            </div>
+          </div>
+
           <div class="card">
-            <h3>Analytics & Reports</h3>
-            <p class="stat-sub">Detailed charts and financial summaries go here.</p>
+            <h3>Wallet Balance Distribution</h3>
+            <div class="wallets-strip" id="anaWalletsStrip"></div>
           </div>
         </section>
 
         <!-- SMART INSIGHTS VIEW -->
         <section id="view-insights" class="view">
           <div class="card">
-            <h3>Smart Insights</h3>
-            <p class="stat-sub">AI and budget recommendations go here.</p>
+            <h3>🧠 Real-Data Smart Financial Insights</h3>
+            <p class="stat-sub mb-15">Automatically generated from your actual recorded transactions.</p>
+            <div id="smartInsightsContainer">
+              <p class="stat-sub">Add a few income and expense transactions to generate personalized insights!</p>
+            </div>
           </div>
         </section>
 
         <!-- SETTINGS & BACKUP VIEW -->
         <section id="view-settings" class="view">
-          <div class="card">
-            <h3>Settings & Backup</h3>
-            <p class="stat-sub">Manage preferences, data backups, and security PIN.</p>
+          <div class="dashboard-charts-grid">
+            <div class="card">
+              <h3>⏰ Daily Evening Expense Reminder</h3>
+              <p class="stat-sub mb-15">Set a daily reminder time to log your expenses.</p>
+              <div class="inline-form mb-15">
+                <input type="time" id="reminderTimeInput" value="21:00" />
+                <button type="button" class="btn-primary" id="reminderBtn" onclick="toggleReminder()">Enable Reminder</button>
+              </div>
+              <p class="stat-sub" id="reminderStatus">Reminder not active.</p>
+            </div>
+
+            <div class="card">
+              <h3>🎨 Appearance & Privacy</h3>
+              <div class="settings-buttons-stack">
+                <button class="btn-outline full-width mb-10" onclick="toggleDarkMode()">🌓 Toggle Dark / Light Mode</button>
+                <button class="btn-outline full-width mb-10" onclick="openPinModal()">🔑 Change 4-Digit Security PIN</button>
+                <button class="btn-outline full-width" onclick="lockApp()">🔒 Lock Website Now</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3>📱 Link Phone & Data Backup</h3>
+              <p class="stat-sub mb-15">Scan QR code to open on your phone, or export/restore your JSON backup or Excel CSV.</p>
+              <div id="qrcode" class="qr-container mb-15"></div>
+              <div class="settings-buttons-stack">
+                <button class="btn-primary full-width mb-10" onclick="exportCSV()">📂 Export Excel (CSV)</button>
+                <div class="form-row">
+                  <button class="btn-outline full-width" onclick="downloadBackupJSON()">💾 Backup Data (.json)</button>
+                  <label class="btn-outline full-width text-center" style="cursor:pointer; display:inline-block; padding-top:10px;">
+                    📂 Restore Backup <input type="file" id="restoreFile" accept=".json" style="display:none;" onchange="restoreBackupJSON(event)" />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card border-red" style="margin-top:20px;">
+            <h3 class="text-red">⚠️ Danger Zone</h3>
+            <p class="stat-sub mb-15">Erase all transactions, wallets, budgets, and goals back to ₹0.</p>
+            <button class="btn-danger" onclick="resetAllData()">🗑️ Reset Everything to ₹0</button>
           </div>
         </section>
 
