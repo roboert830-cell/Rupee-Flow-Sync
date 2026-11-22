@@ -1,5 +1,5 @@
 // ==========================================
-// 1. INITIALIZE FIREBASE (Using your correct config)
+// 1. FIREBASE CONFIGURATION & INITIALIZATION
 // ==========================================
 const firebaseConfig = {
   apiKey: "AIzaSyCZsH5LRgfrHfb4PemAa-0yOYr3j3H2C3k",
@@ -15,14 +15,16 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // ==========================================
-// 2. GOOGLE LOGIN & LOGOUT FUNCTIONS
+// 2. GOOGLE AUTHENTICATION & STATE LISTENER
 // ==========================================
 function loginWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   firebase.auth().signInWithPopup(provider)
     .then((result) => {
       console.log("Successfully logged in as:", result.user.displayName);
-      if (typeof loadUserData === "function") { loadUserData(); }
+      if (typeof loadUserData === "function") {
+        loadUserData();
+      }
     })
     .catch((error) => {
       console.error("Google Login Error:", error.message);
@@ -40,6 +42,27 @@ function logoutUser() {
     });
 }
 
+// Automatically toggle between the login screen and the main dashboard
+firebase.auth().onAuthStateChanged((user) => {
+  const loginScreen = document.getElementById("login-screen");
+  const appDashboard = document.getElementById("app-dashboard");
+
+  if (user) {
+    // User is signed in: hide login screen, show dashboard
+    if (loginScreen) loginScreen.style.display = "none";
+    if (appDashboard) appDashboard.style.display = "block";
+    
+    console.log("Verified user session:", user.displayName);
+    if (typeof loadUserData === "function") {
+      loadUserData();
+    }
+  } else {
+    // User is NOT signed in: show login screen, hide dashboard
+    if (loginScreen) loginScreen.style.display = "flex";
+    if (appDashboard) appDashboard.style.display = "none";
+  }
+});
+
 // ==========================================
 // 3. APP CONSTANTS & VARIABLES
 // ==========================================
@@ -48,6 +71,7 @@ const EXPENSE_CATEGORIES = [
   "Mobile Recharge", "Bills & Electricity", "Entertainment",
   "Medical", "Groceries", "Rent", "Travel", "Other"
 ];
+
 const INCOME_CATEGORIES = [
   "Salary", "Pocket Money", "Freelance Income",
   "Scholarship", "Interest", "Other Income"
