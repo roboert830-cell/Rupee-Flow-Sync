@@ -1,3 +1,23 @@
+// Function to log in with Google
+function loginWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(provider)
+    .then((result) => {
+      console.log("Successfully logged in as:", result.user.displayName);
+      // Load or sync user data after successful login
+      loadUserData();
+    })
+    .catch((error) => {
+      console.error("Google Login Error:", error.message);
+    });
+}
+
+// Optional: Log out function
+function logoutUser() {
+  firebase.auth().signOut().then(() => {
+    console.log("Logged out successfully");
+  });
+}
 const firebaseConfig = {
   apiKey: "AIzaSyCZH5LRgfHfb4PemAa-0yOYr3j3H2C3k",
   authDomain: "rupeeflowsync.firebaseapp.com",
