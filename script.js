@@ -1188,3 +1188,15 @@ function downloadBackupJSON() {
   a.download = `RupeeFlow_Backup_${getTodayStr()}.json`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
+
+// Attach click events to sidebar navigation items
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".nav-item").forEach(button => {
+    button.addEventListener("click", () => {
+      const viewName = button.getAttribute("data-view");
+      if (viewName) {
+        switchView(viewName);
+      }
+    });
+  });
+});
