@@ -1,16 +1,22 @@
+// ==========================================
+// 1. INITIALIZE FIREBASE (Using your correct config)
+// ==========================================
 const firebaseConfig = {
-  apiKey: "AIzaSyCZH5LRgfHfb4PemAa-0yOYr3j3H2C3k",
+  apiKey: "AIzaSyCZsH5LRgfrHfb4PemAa-0yOYr3j3H2C3k",
   authDomain: "rupeeflowsync.firebaseapp.com",
   projectId: "rupeeflowsync",
   storageBucket: "rupeeflowsync.firebasestorage.app",
   messagingSenderId: "871999494809",
-  appId: "1:871999494809:web:d2e2ebbdef1772aaab608",
+  appId: "1:871999494809:web:d2e2ebbfde1f772aaab608",
   measurementId: "G-RRH5J2ZCZG"
 };
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// ==========================================
+// 2. GOOGLE LOGIN & LOGOUT FUNCTIONS
+// ==========================================
 function loginWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   firebase.auth().signInWithPopup(provider)
@@ -20,13 +26,19 @@ function loginWithGoogle() {
     })
     .catch((error) => {
       console.error("Google Login Error:", error.message);
+      alert("Login Error: " + error.message);
     });
 }
 
 function logoutUser() {
-  firebase.auth().signOut();
+  firebase.auth().signOut()
+    .then(() => {
+      console.log("Logged out successfully");
+    })
+    .catch((error) => {
+      console.error("Logout Error:", error.message);
+    });
 }
-
 
 // ==========================================
 // 3. APP CONSTANTS & VARIABLES
